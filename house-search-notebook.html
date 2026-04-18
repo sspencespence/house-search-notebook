@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>House Search Notebook</title>
+<link rel="icon" type="image/x-icon" href="assets/favicon.svg">
 <style>
   :root {
     --ink: #1a1a2e;
@@ -417,6 +418,27 @@
   <div class="field-group"><label>Custom tasks / notes</label><textarea id="checklist-notes" placeholder="Extra tasks, contacts, or notes relevant to your purchase…"></textarea></div>
 </section>
 
+<!-- ── 9 SHARE ── -->
+<section class="section" data-section="9">
+  <div class="section-header"><div class="section-num">09</div><div class="section-header-text"><h2>Share</h2><p>Share your house search progress and comparisons with others.</p></div></div>
+  <div style="text-align:center">
+    <button class="btn accent lg" onclick="exportStorage()">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M2 10v4h12v-4M8 10V2M5 5l3-3 3 3"/>
+      </svg>
+      Export
+    </button>
+    <button class="btn accent lg" onclick="importStorage()">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M2 10v4h12v-4M8 2v8M5 7l3 3 3-3"/>
+      </svg>
+      Import
+    </button>
+  </div>
+  
+</section>
+
+
 </main>
 <div id="toast"></div>
 
@@ -440,6 +462,7 @@ const SECTIONS = [
   { title:'Comparison',         icon:'📊' },
   { title:'Mortgage Calculator',icon:'💰' },
   { title:'Checklist',          icon:'✅' },
+  { title:'Share',              icon:'📩' },
 ];
 let currentSection = get('currentSection', 0);
 
@@ -907,6 +930,47 @@ function renderChecklist() {
   document.getElementById('cl-bar').style.width = pct+'%';
 }
 function toggleCheck(id) { const ch=get('checks',{}); ch[id]=!ch[id]; set('checks',ch); renderChecklist(); }
+
+// ── IMPORT/EXPORT STORAGE ──────────────────────────────────────
+
+function exportStorage() {
+  let payload;
+  try {
+    payload = JSON.stringify(JSON.parse(localStorage.getItem(STORE)));
+  } catch {
+    return;
+  }
+  const blob = new Blob([payload], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = `house-notes-${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast(`Exported to file.`);
+}
+
+function importStorage() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result);
+        localStorage.setItem(STORE, JSON.stringify(data));
+        toast(`Imported from file.`);
+        init();
+      } catch {
+        toast(`Failed to import file.`);
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
 
 // ── TOAST ─────────────────────────────────────────────────────
 let toastT;

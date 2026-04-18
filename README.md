@@ -1,13 +1,14 @@
 # 🏡 House Search Notebook
 
-A private, offline, single-file web tool that guides you through searching for and buying a house. No internet connection required, no accounts, no data ever leaves your device.
+A private, offline, simple web tool that guides you through searching for and buying a house. 
+No internet connection required, no accounts, no data ever leaves your device.
 
 ---
 
 ## Quick Start
 
 1. Download `house-search-notebook.html`
-2. Open it in any modern browser (Chrome, Firefox, Safari, Edge)
+2. Double-click on the file to open it in any modern browser (Chrome, Firefox, Safari, Edge)
 3. Start filling in your details — everything saves automatically
 
 That's it. No installation, no dependencies, no setup.
