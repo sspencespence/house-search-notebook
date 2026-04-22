@@ -715,6 +715,13 @@ function updateHouseField(id, field, val) {
   const houses = get('houses',[]); const h = houses.find(h => h.id === id);
   if (h) { h[field] = val; set('houses', houses); }
 }
+function updateHouseName(id, name) {
+  const houses = get('houses',[]); const h = houses.find(h => h.id === id);
+  if (h) { 
+    h.name = name
+    set('houses', houses); 
+  }
+}
 function rateHouse(id, criterion, stars) {
   const houses = get('houses',[]); const h = houses.find(h => h.id === id);
   if (h) { if (!h.ratings) h.ratings={}; h.ratings[criterion] = stars; set('houses', houses); }
@@ -790,7 +797,7 @@ function renderHouses() {
     card.innerHTML = `
       <div class="house-card-hdr">
         <button class="toggle-card-btn${isExpanded ? '' : ' collapsed'}" onclick="toggleHouseCard(${h.id})" title="Toggle details">▼</button>
-        <h3 contenteditable="true" oninput="updateHouseName(${h.id}, this.textContent)" onblur="updateHouseName(${h.id}, this.textContent)" style="cursor: text; outline: none;">🏠 ${h.name}</h3>
+        <h3 contenteditable="true" oninput="updateHouseName(${h.id}, this.textContent)" onblur="updateHouseName(${h.id}, this.textContent)" style="cursor: text; outline: none;">${h.name}</h3>
         <span class="score-badge" id="sb-${h.id}">${score.toFixed(1)} / 10</span>
         <button class="btn danger" style="padding:4px 10px;font-size:.73rem" onclick="removeHouse(${h.id})">Remove</button>
       </div>
