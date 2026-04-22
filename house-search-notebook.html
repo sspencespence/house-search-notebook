@@ -117,8 +117,11 @@
   .house-card { background: var(--paper-warm); border: 1.5px solid var(--paper-ruled); border-radius: var(--radius); margin-bottom: 22px; box-shadow: var(--shadow); overflow: hidden; }
   .house-card-hdr { background: var(--ink); color: #fff; padding: 11px 16px; display: flex; align-items: center; gap: 12px; }
   .house-card-hdr h3 { flex: 1; font-size: 0.97rem; font-weight: normal; }
-  .house-card-body { padding: 15px 17px; }
+  .house-card-body { padding: 0px 15px; transition: max-height var(--tr), opacity var(--tr), padding var(--tr); max-height: 0; opacity: 0; overflow: hidden; }
+  .house-card-body.expanded { padding: 15px 15px; max-height: 5000px; opacity: 1; }
   .score-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; background: var(--accent); color: #fff; }
+  .toggle-card-btn { background: none; border: none; color: #fff; cursor: pointer; padding: 4px 8px; font-size: 1rem; transition: transform var(--tr); display: flex; align-items: center; justify-content: center; }
+  .toggle-card-btn.collapsed { transform: rotate(-90deg); }
 
   /* ADD HOUSE FORM */
   .add-house-form { background: var(--paper-warm); border: 2px dashed var(--ink-muted); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 22px; }
@@ -733,15 +736,31 @@ function calcScore(h) {
   criteria.forEach(c => { const w = c.weight||5; const r = (h.ratings && h.ratings[c.name])||0; tw+=w; ws+=w*r; });
   return tw ? ws/tw*2 : 0;
 }
+function toggleHouseCard(id) {
+  const card = document.querySelector(`.house-card[data-id="${id}"]`);
+  if (!card) return;
+  const body = card.querySelector('.house-card-body');
+  const btn = card.querySelector('.toggle-card-btn');
+  const isExpanded = body.classList.contains('expanded');
+  if (isExpanded) {
+    body.classList.remove('expanded');
+    btn.classList.add('collapsed');
+  } else {
+    body.classList.add('expanded');
+    btn.classList.remove('collapsed');
+  }
+}
 function renderHouses() {
   const houses = get('houses',[]);
   const criteria = get('criteria',[]);
   const c = document.getElementById('houses-list'); if (!c) return;
   if (!houses.length) { c.innerHTML = '<p class="text-muted">No houses added yet. Fill in the form above.</p>'; return; }
   c.innerHTML = '';
+  // Find the most recently added house (highest ID)
+  const latestHouseId = houses.length > 0 ? Math.max(...houses.map(h => h.id)) : null;
   houses.forEach(h => {
     const score = calcScore(h);
-    const card = document.createElement('div'); card.className = 'house-card';
+    const card = document.createElement('div'); card.className = 'house-card'; card.dataset.id = h.id;
     let rHtml = '';
     if (!criteria.length) {
       rHtml = '<p class="text-muted" style="font-size:.82rem;margin-top:10px">Add criteria in step 4 to score this house.</p>';
@@ -767,13 +786,15 @@ function renderHouses() {
       });
       rHtml += '</tbody></table>';
     }
+    const isExpanded = h.id === latestHouseId;
     card.innerHTML = `
       <div class="house-card-hdr">
-        <h3>🏠 ${h.name}</h3>
+        <button class="toggle-card-btn${isExpanded ? '' : ' collapsed'}" onclick="toggleHouseCard(${h.id})" title="Toggle details">▼</button>
+        <h3 contenteditable="true" oninput="updateHouseName(${h.id}, this.textContent)" onblur="updateHouseName(${h.id}, this.textContent)" style="cursor: text; outline: none;">🏠 ${h.name}</h3>
         <span class="score-badge" id="sb-${h.id}">${score.toFixed(1)} / 10</span>
         <button class="btn danger" style="padding:4px 10px;font-size:.73rem" onclick="removeHouse(${h.id})">Remove</button>
       </div>
-      <div class="house-card-body">
+      <div class="house-card-body${isExpanded ? ' expanded' : ''}">
         <div class="row-2" style="margin-bottom:10px">
           <div class="field-group mb-0"><label>Price (£)</label><input type="number" value="${h.price||''}" placeholder="Asking price" oninput="updateHouseField(${h.id},'price',this.value)"></div>
           <div class="field-group mb-0"><label>Listing URL / ref</label><input type="text" value="${h.url||''}" placeholder="URL or reference" oninput="updateHouseField(${h.id},'url',this.value)"></div>
